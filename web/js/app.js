@@ -111,7 +111,7 @@ function updateControls() {
   breakSelect.disabled = selectsDisabled;
 }
 
-function resetState() {
+function resetState({ preserveStatusMessage = false, cancelSpeech = true } = {}) {
   isRunning = false;
   activeIndex = 0;
   currentPhase = "idle";
@@ -119,10 +119,12 @@ function resetState() {
   countdownInterval = null;
   countdownEnd = 0;
   countdownDisplay.textContent = "--:--";
-  statusMessage.textContent = timers.length
-    ? "Ready when you are."
-    : "Add timers to build your workout.";
-  if ("speechSynthesis" in window) {
+  if (!preserveStatusMessage) {
+    statusMessage.textContent = timers.length
+      ? "Ready when you are."
+      : "Add timers to build your workout.";
+  }
+  if (cancelSpeech && "speechSynthesis" in window) {
     window.speechSynthesis.cancel();
   }
   updateControls();
@@ -169,7 +171,7 @@ function handlePhaseCompletion() {
     if (activeIndex >= timers.length) {
       speak("Workout done. Good job!");
       statusMessage.textContent = "Workout complete. Great job!";
-      resetState();
+      resetState({ preserveStatusMessage: true, cancelSpeech: false });
     } else {
       beginTimer();
     }
