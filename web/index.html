@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VR Workout Timer</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="background"></div>
+    <div class="overlay"></div>
+    <main class="app">
+      <header class="app__header">
+        <h1>VR Workout Timer</h1>
+        <p class="tagline">Build immersive interval sessions with guided voice cues.</p>
+      </header>
+
+      <section class="controls" aria-label="Timer builder">
+        <div class="control">
+          <label for="workout-select">Workout</label>
+          <select id="workout-select" name="workout"></select>
+        </div>
+        <div class="control">
+          <label for="break-select">Break</label>
+          <select id="break-select" name="break"></select>
+        </div>
+        <button id="add-button" type="button" class="btn btn--secondary">Add</button>
+      </section>
+
+      <section class="timer-list" aria-label="Scheduled timers">
+        <h2>Your session</h2>
+        <p class="list-hint">Add up to 10 workout and break pairs.</p>
+        <ul id="timers" class="timers" role="list"></ul>
+        <p id="limit-message" class="limit-message" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="status" aria-live="assertive">
+        <p id="status-message">Add timers to build your workout.</p>
+        <p id="countdown" class="countdown">--:--</p>
+      </section>
+
+      <section class="actions" aria-label="Timer controls">
+        <button id="start-button" type="button" class="btn btn--primary" disabled>Start</button>
+        <button id="stop-button" type="button" class="btn btn--danger" disabled>Stop</button>
+      </section>
+    </main>
+
+    <script src="js/app.js" defer></script>
+  </body>
+</html>
