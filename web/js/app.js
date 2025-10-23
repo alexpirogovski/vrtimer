@@ -189,7 +189,9 @@ function handlePhaseCompletion() {
   } else if (currentPhase === "break") {
     activeIndex += 1;
     if (activeIndex >= timers.length) {
-      completeWorkout();
+      speak("Workout done. Good job!");
+      statusMessage.textContent = "Workout complete. Great job!";
+      resetState({ preserveStatusMessage: true, cancelSpeech: false });
     } else {
       beginTimer();
     }
