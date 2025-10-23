@@ -1,3 +1,4 @@
+const prepSelect = document.getElementById("prep-select");
 const workoutSelect = document.getElementById("workout-select");
 const breakSelect = document.getElementById("break-select");
 const addButton = document.getElementById("add-button");
@@ -9,13 +10,14 @@ const statusMessage = document.getElementById("status-message");
 const countdownDisplay = document.getElementById("countdown");
 
 const MAX_TIMERS = 10;
+const PREP_OPTIONS = [1, 2, 3, 4, 5];
 const WORKOUT_OPTIONS = [1, 5, 10, 20, 30, 40, 50, 60];
 const BREAK_OPTIONS = [1, 2, 3, 4, 5];
 
 let timers = [];
 let isRunning = false;
 let activeIndex = 0;
-let currentPhase = "idle"; // idle | workout | break
+let currentPhase = "idle"; // idle | prep | workout | break
 let countdownInterval = null;
 let countdownEnd = 0;
 
@@ -107,11 +109,12 @@ function updateControls() {
   addButton.disabled = isRunning || timers.length >= MAX_TIMERS;
 
   const selectsDisabled = isRunning;
+  prepSelect.disabled = selectsDisabled;
   workoutSelect.disabled = selectsDisabled;
   breakSelect.disabled = selectsDisabled;
 }
 
-function resetState() {
+function resetState({ preserveStatusMessage = false, cancelSpeech = true } = {}) {
   isRunning = false;
   activeIndex = 0;
   currentPhase = "idle";
@@ -119,10 +122,12 @@ function resetState() {
   countdownInterval = null;
   countdownEnd = 0;
   countdownDisplay.textContent = "--:--";
-  statusMessage.textContent = timers.length
-    ? "Ready when you are."
-    : "Add timers to build your workout.";
-  if ("speechSynthesis" in window) {
+  if (!preserveStatusMessage) {
+    statusMessage.textContent = timers.length
+      ? "Ready when you are."
+      : "Add timers to build your workout.";
+  }
+  if (cancelSpeech && "speechSynthesis" in window) {
     window.speechSynthesis.cancel();
   }
   updateControls();
@@ -152,10 +157,27 @@ function startCountdown(durationSeconds, onComplete) {
   }, 200);
 }
 
+function completeWorkout() {
+  speak("Workout done. Good job!");
+  statusMessage.textContent = "Workout complete. Great job!";
+  resetState({ preserveStatusMessage: true, cancelSpeech: false });
+}
+
 function handlePhaseCompletion() {
   const currentTimer = timers[activeIndex];
 
+  if (currentPhase === "prep") {
+    beginTimer();
+    return;
+  }
+
   if (currentPhase === "workout") {
+    const isLastInterval = activeIndex === timers.length - 1;
+    if (isLastInterval) {
+      completeWorkout();
+      return;
+    }
+
     speak(`${currentTimer.workout} minutes passed, resting for ${currentTimer.break} minute${
       currentTimer.break === 1 ? "" : "s"
     }.`);
@@ -167,9 +189,7 @@ function handlePhaseCompletion() {
   } else if (currentPhase === "break") {
     activeIndex += 1;
     if (activeIndex >= timers.length) {
-      speak("Workout done. Good job!");
-      statusMessage.textContent = "Workout complete. Great job!";
-      resetState();
+      completeWorkout();
     } else {
       beginTimer();
     }
@@ -193,7 +213,16 @@ function startSession() {
   activeIndex = 0;
   currentPhase = "idle";
   updateControls();
-  beginTimer();
+  const prepMinutes = Number(prepSelect.value);
+  if (prepMinutes > 0) {
+    currentPhase = "prep";
+    const prepText = `${prepMinutes} minute${prepMinutes === 1 ? "" : "s"}`;
+    statusMessage.textContent = `Prep for ${prepText}.`;
+    speak(`Get ready. Workout starts in ${prepText}.`);
+    startCountdown(prepMinutes * 60, handlePhaseCompletion);
+  } else {
+    beginTimer();
+  }
 }
 
 function stopSession() {
@@ -205,6 +234,7 @@ function stopSession() {
 }
 
 function init() {
+  populateSelect(prepSelect, PREP_OPTIONS, 1);
   populateSelect(workoutSelect, WORKOUT_OPTIONS, 30);
   populateSelect(breakSelect, BREAK_OPTIONS, 1);
   renderTimers();
