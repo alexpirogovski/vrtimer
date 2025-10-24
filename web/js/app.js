@@ -187,6 +187,12 @@ function completeWorkout() {
   resetState({ preserveStatusMessage: true, cancelSpeech: false });
 }
 
+function completeWorkout() {
+  speak("Workout done. Good job!");
+  statusMessage.textContent = "Workout complete. Great job!";
+  resetState({ preserveStatusMessage: true, cancelSpeech: false });
+}
+
 function handlePhaseCompletion() {
   const currentTimer = timers[activeIndex];
 
