@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import http.server
+import json
 import os
 import socket
 import socketserver
@@ -17,6 +18,8 @@ WEB_ROOT = PROJECT_ROOT / "web"
 class VRTimerRequestHandler(http.server.SimpleHTTPRequestHandler):
     """Request handler that serves files from the web directory."""
 
+    timer_speed_multiplier: float = 1.0
+
     def __init__(self, *args, **kwargs) -> None:
         directory = kwargs.pop("directory", str(WEB_ROOT))
         super().__init__(*args, directory=directory, **kwargs)
@@ -28,6 +31,16 @@ class VRTimerRequestHandler(http.server.SimpleHTTPRequestHandler):
         print(message)
 
     def do_GET(self) -> None:  # noqa: N802 - required by base class
+        if self.path == "/config.json":
+            payload = json.dumps({"timerSpeedMultiplier": self.timer_speed_multiplier}).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
         if self.path in {"", "/", "/index", "/index.html"}:
             self.path = "index.html"
         super().do_GET()
@@ -45,11 +58,14 @@ def _get_free_port(port: int) -> Tuple[str, int]:
     return host, port
 
 
-def run_server(port: int = 5000) -> Tuple[str, int]:
+def run_server(port: int = 5000, timer_speed_multiplier: float = 1.0) -> Tuple[str, int]:
     """Start the HTTP server and keep it running until interrupted."""
 
     host, resolved_port = _get_free_port(port)
-    handler_factory = lambda *args, **kwargs: VRTimerRequestHandler(*args, directory=str(WEB_ROOT), **kwargs)
+    VRTimerRequestHandler.timer_speed_multiplier = timer_speed_multiplier
+    handler_factory = lambda *args, **kwargs: VRTimerRequestHandler(
+        *args, directory=str(WEB_ROOT), **kwargs
+    )
 
     class ThreadingTCPServer(socketserver.ThreadingTCPServer):
         allow_reuse_address = True
