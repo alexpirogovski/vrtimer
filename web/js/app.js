@@ -11,7 +11,7 @@ const countdownDisplay = document.getElementById("countdown");
 
 const MAX_TIMERS = 10;
 const PREP_OPTIONS = [1, 2, 3, 4, 5];
-const WORKOUT_OPTIONS = [1, 5, 10, 20, 30, 40, 50, 60];
+const WORKOUT_OPTIONS = [1, 5, 10, 20, 25, 30, 35, 40, 45, 50, 55, 60];
 const BREAK_OPTIONS = [1, 2, 3, 4, 5];
 
 let timers = [];
@@ -20,6 +20,7 @@ let activeIndex = 0;
 let currentPhase = "idle"; // idle | prep | workout | break
 let countdownInterval = null;
 let countdownEnd = 0;
+let timerSpeedMultiplier = 1;
 
 function populateSelect(selectEl, values, defaultValue) {
   const fragment = document.createDocumentFragment();
@@ -133,6 +134,23 @@ function resetState({ preserveStatusMessage = false, cancelSpeech = true } = {})
   updateControls();
 }
 
+async function loadTimerSettings() {
+  try {
+    const response = await fetch("config.json", { cache: "no-store" });
+    if (!response.ok) {
+      return;
+    }
+
+    const data = await response.json();
+    const multiplier = Number(data.timerSpeedMultiplier);
+    if (Number.isFinite(multiplier) && multiplier > 0) {
+      timerSpeedMultiplier = multiplier;
+    }
+  } catch (error) {
+    console.error("Failed to load timer settings", error);
+  }
+}
+
 function formatTime(secondsRemaining) {
   const minutes = Math.floor(secondsRemaining / 60);
   const seconds = secondsRemaining % 60;
@@ -140,21 +158,33 @@ function formatTime(secondsRemaining) {
 }
 
 function startCountdown(durationSeconds, onComplete) {
+  const speed = timerSpeedMultiplier > 0 ? timerSpeedMultiplier : 1;
   const start = Date.now();
-  countdownEnd = start + durationSeconds * 1000;
+  const totalDurationMs = durationSeconds * 1000;
+  const runtimeMs = totalDurationMs / speed;
+  countdownEnd = start + runtimeMs;
   countdownDisplay.textContent = formatTime(durationSeconds);
 
   clearInterval(countdownInterval);
   countdownInterval = setInterval(() => {
     const now = Date.now();
-    const remaining = Math.max(0, Math.round((countdownEnd - now) / 1000));
-    countdownDisplay.textContent = formatTime(remaining);
-    if (remaining <= 0) {
+    const elapsedRealMs = now - start;
+    const elapsedTimerMs = elapsedRealMs * speed;
+    const remainingTimerMs = Math.max(0, totalDurationMs - elapsedTimerMs);
+    const remainingSeconds = Math.max(0, Math.round(remainingTimerMs / 1000));
+    countdownDisplay.textContent = formatTime(remainingSeconds);
+    if (elapsedTimerMs >= totalDurationMs) {
       clearInterval(countdownInterval);
       countdownInterval = null;
       onComplete();
     }
-  }, 200);
+  }, Math.max(50, 200 / speed));
+}
+
+function completeWorkout() {
+  speak("Workout done. Good job!");
+  statusMessage.textContent = "Workout complete. Great job!";
+  resetState({ preserveStatusMessage: true, cancelSpeech: false });
 }
 
 function completeWorkout() {
@@ -189,9 +219,7 @@ function handlePhaseCompletion() {
   } else if (currentPhase === "break") {
     activeIndex += 1;
     if (activeIndex >= timers.length) {
-      speak("Workout done. Good job!");
-      statusMessage.textContent = "Workout complete. Great job!";
-      resetState({ preserveStatusMessage: true, cancelSpeech: false });
+      completeWorkout();
     } else {
       beginTimer();
     }
@@ -235,7 +263,8 @@ function stopSession() {
   statusMessage.textContent = "Session stopped.";
 }
 
-function init() {
+async function init() {
+  await loadTimerSettings();
   populateSelect(prepSelect, PREP_OPTIONS, 1);
   populateSelect(workoutSelect, WORKOUT_OPTIONS, 30);
   populateSelect(breakSelect, BREAK_OPTIONS, 1);
