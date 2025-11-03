@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>VR Workout Timer</title>
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -40,21 +41,24 @@
         <button id="add-button" type="button" class="btn btn--secondary">Add</button>
       </section>
 
-      <section class="timer-list" aria-label="Scheduled timers">
-        <h2>Your session</h2>
-        <p class="list-hint">Add up to 10 workout and break pairs.</p>
-        <ul id="timers" class="timers" role="list"></ul>
-        <p id="limit-message" class="limit-message" role="status" aria-live="polite"></p>
+      <section class="session-layout">
+        <section class="timer-list" aria-label="Scheduled timers">
+          <h2>Your session</h2>
+          <p class="list-hint">Add up to 10 workout and break pairs.</p>
+          <ul id="timers" class="timers" role="list"></ul>
+          <p id="limit-message" class="limit-message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="actions" aria-label="Timer controls">
+          <button id="start-button" type="button" class="btn btn--primary" disabled>Start</button>
+          <button id="pause-button" type="button" class="btn btn--secondary" disabled>Pause</button>
+          <button id="stop-button" type="button" class="btn btn--danger" disabled>Stop</button>
+        </section>
       </section>
 
       <section class="status" aria-live="assertive">
         <p id="status-message">Add timers to build your workout.</p>
         <p id="countdown" class="countdown">--:--</p>
-      </section>
-
-      <section class="actions" aria-label="Timer controls">
-        <button id="start-button" type="button" class="btn btn--primary" disabled>Start</button>
-        <button id="stop-button" type="button" class="btn btn--danger" disabled>Stop</button>
       </section>
     </main>
 
