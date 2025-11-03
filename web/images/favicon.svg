@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="VR Timer icon">
+  <rect width="64" height="64" rx="12" fill="#03130a" />
+  <circle cx="38" cy="18" r="6" fill="#32ff72" />
+  <path
+    fill="#32ff72"
+    d="M18 48l9.6-14.2a4 4 0 013.3-1.8h4.2l-7.5-5.1 4.3-6.2 11 7a4 4 0 011.5 5.1L38.8 42h6.3a4 4 0 012.7 1l4.2 3.8-4.5 5-4.2-3.7h-9.5L27 56z"
+  />
+</svg>

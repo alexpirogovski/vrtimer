@@ -15,12 +15,18 @@ def parse_args() -> argparse.Namespace:
         default=5000,
         help="Port to bind the server to (default: 5000)",
     )
+    parser.add_argument(
+        "--test",
+        action="store_true",
+        help="Run timers in accelerated test mode (6x speed)",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    host, port = run_server(port=args.port)
+    multiplier = 6.0 if args.test else 1.0
+    host, port = run_server(port=args.port, timer_speed_multiplier=multiplier)
     print(f"Server available at http://{host if host != '0.0.0.0' else 'localhost'}:{port}")
 
 
